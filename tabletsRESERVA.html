@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RESERVA CARRO DE TABLETS</title>
+  <style>
+    :root {
+      --col-date-width: 110px;
+      --col-session-width: 90px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #f5f5f5;
+    }
+
+    header {
+      background: #6a1b9a; /* Gris para la cabecera */
+      color: white;
+      padding: 16px 24px 10px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 24px 6px;
+      background: #f5f5f5;
+    }
+
+    main {
+      padding: 12px 16px 24px;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    select {
+      padding: 4px 8px;
+      font-size: 14px;
+    }
+
+    .legend {
+      font-size: 12px;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid #aaa;
+    }
+
+    .legend-color.free {
+      background: #ffffff;
+    }
+
+    .legend-color.reserved {
+      background: #e53935;
+    }
+
+    .table-container {
+      max-width: 100%;
+      overflow: auto;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+      max-height: 80vh; /* para poder centrar el día actual */
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 900px;
+      font-size: 12px;
+      table-layout: fixed;
+    }
+
+    /* Cabecera de la tabla en gris claro */
+    thead {
+      background: #e0e0e0;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #e0e0e0;
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      text-align: center;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      text-align: center;
+      white-space: normal;
+      word-break: break-word;
+      background: #ffffff; /* Libre en blanco por defecto */
+    }
+
+    thead th:nth-child(1),
+    tbody td:nth-child(1) {
+      width: var(--col-date-width);
+      min-width: var(--col-date-width);
+      max-width: var(--col-date-width);
+    }
+
+    thead th:nth-child(2),
+    tbody td:nth-child(2) {
+      width: var(--col-session-width);
+      min-width: var(--col-session-width);
+      max-width: var(--col-session-width);
+    }
+
+    thead th:nth-child(1) {
+      position: sticky;
+      left: 0;
+      z-index: 11;
+      background: #e0e0e0;
+    }
+
+    thead th:nth-child(2) {
+      position: sticky;
+      left: var(--col-date-width);
+      z-index: 11;
+      background: #e0e0e0;
+    }
+
+    tbody td:nth-child(1) {
+      position: sticky;
+      left: 0;
+      z-index: 11;
+      background: #fff;
+    }
+
+    tbody td:nth-child(2) {
+      position: sticky;
+      left: var(--col-date-width);
+      z-index: 11;
+      background: #fff;
+    }
+
+    /* Separador grueso entre días (primera fila de cada día) */
+    tbody tr.first-slot-of-day td {
+      border-top-width: 3px;
+    }
+
+    /* Fila con alguna reserva (fondo rojo clarito) */
+    tbody tr.row-has-reservation td {
+      background: #ffebee;
+    }
+
+    td.reservable {
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    td.reservable:hover {
+      box-shadow: inset 0 0 0 2px #1f4e79;
+    }
+
+    td.reserved {
+      background: #e53935 !important;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    /* Reservas fijas del horario (no hay, pero dejamos la clase por si acaso) */
+    td.fixed-reserved {
+      background: #b71c1c !important;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: default;
+    }
+
+    td.reservable::before {
+      content: attr(data-class);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      text-align: center;
+      width: 100%;
+      padding: 0 4px;
+      box-sizing: border-box;
+      line-height: 1.2;
+    }
+
+    td.reserved::before {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    td.fixed-reserved::before {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Celda de fecha del día actual (marcado en verde) */
+    .today-date-cell {
+      background: #c8e6c9 !important;
+      border-left: 8px solid #2e7d32;
+      font-weight: 700;
+    }
+
+    .info {
+      font-size: 11px;
+      color: #555;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Barra superior fija -->
+  <div class="top-bar">
+    <header>
+      <h1>RESERVA CARRO DE TABLETS</h1>
+    </header>
+
+    <div class="controls">
+      <div>
+        <label for="monthSelect">Mes:</label>
+        <select id="monthSelect"></select>
+      </div>
+      <div class="legend">
+        <span class="legend-item">
+          <span class="legend-color free"></span> Libre
+        </span>
+        <span class="legend-item">
+          <span class="legend-color reserved"></span> Reservado
+        </span>
+        <span>Haz doble clic o doble toque para reservar / liberar.</span>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="table-container">
+      <table id="calendarTable">
+        <!-- Cabecera y cuerpo se generan por JS -->
+      </table>
+    </div>
+
+    <p class="info">
+      * Las reservas pueden cambiarse o cancelarse durante un máximo de 2 minutos desde el momento en que se realizan.
+    </p>
+    <p class="info">
+      
+    </p>
+  </main>
+
+  <!-- JS con Firestore -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      onSnapshot,
+      setDoc,
+      deleteField
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ⏱ TIEMPO MÁXIMO PARA DESHACER (ms) → ahora 2 minutos
+    const UNRESERVE_WINDOW_MS = 2 * 60 * 1000;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5EAMg-0p54f8bPq8SVdZ_ePg5Xso3cmg",
+      authDomain: "arm1-acbba.firebaseapp.com",
+      projectId: "arm1-acbba",
+      storageBucket: "arm1-acbba.firebasestorage.app",
+      messagingSenderId: "408825932019",
+      appId: "1:408825932019:web:10f2079b590b4c9ca3af86",
+      measurementId: "G-S78TM6PVRL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    const months = [
+      { year: 2025, month: 11, name: "Noviembre 2025" },
+      { year: 2025, month: 12, name: "Diciembre 2025" },
+      { year: 2026, month: 1, name: "Enero 2026" },
+      { year: 2026, month: 2, name: "Febrero 2026" },
+      { year: 2026, month: 3, name: "Marzo 2026" },
+      { year: 2026, month: 4, name: "Abril 2026" },
+      { year: 2026, month: 5, name: "Mayo 2026" },
+      { year: 2026, month: 6, name: "Junio 2026" }
+    ];
+
+    const classes = [
+      "Infantil 3 años",
+      "Infantil 4 años",
+      "Infantil 5 años",
+      "1ºA",
+      "2ºA",
+      "3ºA",
+      "4ºA",
+      "4ºB",
+      "5ºA",
+      "5ºB",
+      "6ºA",
+      "6ºB"
+    ];
+
+    // Horarios normales (nov–may)
+    const defaultSlots = [
+      "9:00-9:45",   // 1ª
+      "9:45-10:30",  // 2ª
+      "10:30-11:15", // 3ª
+      "11:45-12:30", // 4ª
+      "12:30-13:15", // 5ª
+      "13:15-14:00"  // 6ª
+    ];
+
+    // Horarios especiales para JUNIO 2026 (solo 5 sesiones)
+    const juneSlots = [
+      "9:00-9:40",
+      "9:40-10:20",
+      "10:20-11:00",
+      "11:30-12:15",
+      "12:15-13:00"
+    ];
+
+    function getSlotsForMonth(monthIndex) {
+      const { year, month } = months[monthIndex];
+      if (year === 2026 && month === 6) {
+        // En junio solo hay 5 sesiones
+        return juneSlots;
+      }
+      return defaultSlots;
+    }
+
+    /* === RESERVAS FIJAS CARRO DE TABLETS ===
+       De momento no hay reservas fijas.
+    */
+    const FIXED_WEEKLY_RESERVATIONS = [];
+
+    function isFixedReservation(dateIso, slot, className) {
+      // No hay ningún horario fijo en este recurso
+      return false;
+    }
+
+    // Devuelve si una franja (fecha+slot) está ocupada por una reserva fija (aquí nunca)
+    function getFixedReservationForSlot(dateIso, slot) {
+      return null;
+    }
+
+    const monthSelect    = document.getElementById("monthSelect");
+    const calendarTable  = document.getElementById("calendarTable");
+    const tableContainer = document.querySelector(".table-container");
+
+    let currentMonthIndex = 0;
+    let currentData = {};
+    let unsubscribe = null;
+
+    // Para que solo auto-centre el mes de "hoy" la primera vez
+    const autoScrolledMonths = {};
+
+    function monthDocRef(monthIndex) {
+      const { year, month } = months[monthIndex];
+      const id = `${year}-${String(month).padStart(2, "0")}`;
+      // Colección específica para el carro de tablets
+      return doc(db, "reservas_carro_tablets_celdas", id);
+    }
+
+    function buildReservationId(dateIso, slot, className) {
+      return `${dateIso}__${slot}__${className}`;
+    }
+
+    function subscribeToMonth(monthIndex) {
+      if (unsubscribe) {
+        unsubscribe();
+        unsubscribe = null;
+      }
+      currentMonthIndex = monthIndex;
+
+      const ref = monthDocRef(monthIndex);
+      unsubscribe = onSnapshot(ref, (snap) => {
+        currentData = snap.exists() ? snap.data() : {};
+        renderMonth(monthIndex);
+      });
+    }
+
+    async function setReservationValue(id, value) {
+      const ref = monthDocRef(currentMonthIndex);
+      const update = {};
+      update[id] = value;
+      await setDoc(ref, update, { merge: true });
+    }
+
+    async function clearReservation(id) {
+      const ref = monthDocRef(currentMonthIndex);
+      const update = {};
+      update[id] = deleteField();
+      await setDoc(ref, update, { merge: true });
+    }
+
+    // Devuelve la reserva (si existe) para una fecha + franja, sin importar la clase
+    function getExistingReservationForSlot(dateIso, slot) {
+      const prefix = `${dateIso}__${slot}__`;
+
+      for (const key in currentData) {
+        const value = currentData[key];
+        if (!value) continue; // sin reserva
+
+        if (typeof value === "number" || value === true) {
+          if (key.startsWith(prefix)) {
+            const parts = key.split("__");
+            const cls   = parts[2] || "";
+            return {
+              id: key,
+              className: cls,
+              value
+            };
+          }
+        }
+      }
+
+      // En este recurso no hay reservas fijas
+      const fixed = getFixedReservationForSlot(dateIso, slot);
+      if (fixed) {
+        return {
+          id: null,
+          className: fixed.className,
+          value: "fixed"
+        };
+      }
+
+      return null;
+    }
+
+    // Devuelve la fecha de hoy en formato YYYY-MM-DD
+    function getTodayIso() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    // Selector de meses
+    months.forEach((m, index) => {
+      const opt = document.createElement("option");
+      opt.value = index;
+      opt.textContent = m.name;
+      monthSelect.appendChild(opt);
+    });
+
+    monthSelect.addEventListener("change", () => {
+      const idx = parseInt(monthSelect.value, 10);
+      subscribeToMonth(idx);
+    });
+
+    // Obtener días lectivos (con inicial del día: L, M, X, J, V)
+    function getWeekdays(year, month) {
+      const days = [];
+      const date = new Date(year, month - 1, 1);
+      const initials = {
+        1: "L",
+        2: "M",
+        3: "X",
+        4: "J",
+        5: "V"
+      };
+
+      while (date.getMonth() === month - 1) {
+        const day = date.getDay(); // 0=Dom, 1=Lun,...,6=Sab
+        if (day >= 1 && day <= 5) {
+          const d = String(date.getDate()).padStart(2, "0");
+          const m = String(month).padStart(2, "0");
+          const y = year;
+          const initial = initials[day] || "";
+          days.push({
+            iso: `${y}-${m}-${d}`,
+            label: `${initial} ${d}/${m}/${y}`
+          });
+        }
+        date.setDate(date.getDate() + 1);
+      }
+      return days;
+    }
+
+    function renderMonth(monthIndex) {
+      const { year, month } = months[monthIndex];
+      const days = getWeekdays(year, month);
+      const slotsForMonth = getSlotsForMonth(monthIndex);
+      const saved = currentData || {};
+      const todayIso = getTodayIso();
+
+      calendarTable.innerHTML = "";
+
+      // CABECERA (thead)
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      const labels = ["Fecha", "Sesión", ...classes];
+      labels.forEach(text => {
+        const th = document.createElement("th");
+        th.textContent = text;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      calendarTable.appendChild(thead);
+
+      // CUERPO (tbody)
+      const tbody = document.createElement("tbody");
+
+      let todayAnchorRow = null; // para centrar el día actual
+
+      days.forEach(day => {
+        const isToday = (day.iso === todayIso);
+
+        slotsForMonth.forEach((slot, slotIndex) => {
+          const tr = document.createElement("tr");
+
+          // Primera franja del día → separador grueso
+          if (slotIndex === 0) {
+            tr.classList.add("first-slot-of-day");
+          }
+
+          const tdFecha = document.createElement("td");
+          tdFecha.textContent = day.label;
+          if (isToday) {
+            tdFecha.classList.add("today-date-cell");
+          }
+          tr.appendChild(tdFecha);
+
+          const tdSlot = document.createElement("td");
+          tdSlot.textContent = slot;
+          tr.appendChild(tdSlot);
+
+          // Para saber si esta franja (fila) tiene alguna reserva
+          let rowHasReservation = false;
+
+          classes.forEach(cls => {
+            const td = document.createElement("td");
+            td.classList.add("reservable");
+            td.dataset.date = day.iso;
+            td.dataset.slot = slot;
+            td.dataset.class = cls; // usado para la marca de agua
+
+            const id = buildReservationId(day.iso, slot, cls);
+            const isFixed = isFixedReservation(day.iso, slot, cls);
+
+            if (isFixed) {
+              td.classList.add("fixed-reserved");
+              td.dataset.fixed = "true";
+              rowHasReservation = true;
+            } else if (saved[id]) {
+              td.classList.add("reserved");
+              rowHasReservation = true;
+            }
+
+            tr.appendChild(td);
+          });
+
+          // Si alguna celda de esta franja está reservada, coloreamos toda la fila
+          if (rowHasReservation) {
+            tr.classList.add("row-has-reservation");
+          }
+
+          // Guardamos la primera fila del día de hoy como ancla para centrar
+          if (isToday && slotIndex === 0) {
+            todayAnchorRow = tr;
+          }
+
+          tbody.appendChild(tr);
+        });
+      });
+
+      calendarTable.appendChild(tbody);
+
+      // Centrar automáticamente el día de hoy en pantalla (solo una vez por mes)
+      if (todayAnchorRow && tableContainer) {
+        const docId = `${year}-${String(month).padStart(2, "0")}`;
+        if (!autoScrolledMonths[docId]) {
+          const rowOffset = todayAnchorRow.offsetTop;
+          const rowHeight = todayAnchorRow.offsetHeight;
+          const targetScrollTop = rowOffset - (tableContainer.clientHeight / 2 - rowHeight / 2);
+          tableContainer.scrollTop = Math.max(targetScrollTop, 0);
+          autoScrolledMonths[docId] = true;
+        }
+      }
+    }
+
+    // 🧠 LÓGICA DE RESERVA / LIBERACIÓN CON DOBLE CLIC / DOBLE TOQUE
+    const DOUBLE_CLICK_MS = 400;
+    let lastCellId = null;
+    let lastClickTime = 0;
+
+    async function activarCelda(cell) {
+      // Si es una reserva fija del horario, no hacemos nada
+      if (cell.dataset.fixed === "true") {
+        alert("Esta franja horaria está reservada de forma fija y no se puede modificar.");
+        return;
+      }
+
+      const { date, slot, class: className } = cell.dataset;
+      const id = buildReservationId(date, slot, className);
+      const value = currentData[id];   // puede ser undefined, true o timestamp (number)
+      const now   = Date.now();
+
+      // Si NO hay reserva en esta celda → queremos crear una nueva
+      if (!value) {
+        // ✅ NO permitir nuevas reservas en días ya pasados
+        const todayIso = getTodayIso();
+        if (date < todayIso) {
+          alert("No se pueden hacer nuevas reservas en días que ya han pasado.");
+          return;
+        }
+
+        // 1) Comprobar si la franja ya está ocupada por otra clase
+        const existing = getExistingReservationForSlot(date, slot);
+        if (existing) {
+          const reservedClass = existing.className || "otra clase";
+          alert(`No puedes reservar esta franja horaria porque ya está reservada por ${reservedClass}.`);
+          return;
+        }
+
+        // 2) La franja está libre → crear reserva con timestamp (ms)
+        await setReservationValue(id, now);
+        return;
+      }
+
+      // Si es un número, es un timestamp → comprobamos ventana de tiempo para DESHACER
+      if (typeof value === "number") {
+        const elapsed = now - value;
+        if (elapsed <= UNRESERVE_WINDOW_MS) {
+          await clearReservation(id);
+        } else {
+          alert("Esta reserva ya no se puede modificar.");
+        }
+        return;
+      }
+
+      // Compatibilidad con reservas antiguas (valor true): se permite borrar siempre
+      if (value === true) {
+        await clearReservation(id);
+        return;
+      }
+    }
+
+    calendarTable.addEventListener("click", (event) => {
+      const cell = event.target.closest("td.reservable");
+      if (!cell) return;
+
+      const uniqueId = `${cell.dataset.date}__${cell.dataset.slot}__${cell.dataset.class}`;
+      const now = Date.now();
+
+      if (lastCellId === uniqueId && (now - lastClickTime) <= DOUBLE_CLICK_MS) {
+        // Doble clic / doble toque → activar
+        activarCelda(cell);
+        lastCellId = null;
+        lastClickTime = 0;
+      } else {
+        // Primer clic → solo marcar el tiempo
+        lastCellId = uniqueId;
+        lastClickTime = now;
+      }
+    });
+
+    // Inicializar
+    monthSelect.value = "0";
+    subscribeToMonth(0);
+  </script>
+</body>
+</html>
