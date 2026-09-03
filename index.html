@@ -253,7 +253,7 @@
   <!-- Barra superior fija -->
   <div class="top-bar">
     <header>
-      <h1>RESERVA CARRO DE TABLETS</h1>
+      <h1>RESERVA CARRO DE TABLETS · CURSO 2026–2027</h1>
     </header>
 
     <div class="controls">
@@ -284,7 +284,7 @@
       * Las reservas pueden cambiarse o cancelarse durante un máximo de 2 minutos desde el momento en que se realizan.
     </p>
     <p class="info">
-      
+
     </p>
   </main>
 
@@ -316,14 +316,16 @@
     const db  = getFirestore(app);
 
     const months = [
-      { year: 2025, month: 11, name: "Noviembre 2025" },
-      { year: 2025, month: 12, name: "Diciembre 2025" },
-      { year: 2026, month: 1, name: "Enero 2026" },
-      { year: 2026, month: 2, name: "Febrero 2026" },
-      { year: 2026, month: 3, name: "Marzo 2026" },
-      { year: 2026, month: 4, name: "Abril 2026" },
-      { year: 2026, month: 5, name: "Mayo 2026" },
-      { year: 2026, month: 6, name: "Junio 2026" }
+      { year: 2026, month: 9, name: "Septiembre 2026" },
+      { year: 2026, month: 10, name: "Octubre 2026" },
+      { year: 2026, month: 11, name: "Noviembre 2026" },
+      { year: 2026, month: 12, name: "Diciembre 2026" },
+      { year: 2027, month: 1, name: "Enero 2027" },
+      { year: 2027, month: 2, name: "Febrero 2027" },
+      { year: 2027, month: 3, name: "Marzo 2027" },
+      { year: 2027, month: 4, name: "Abril 2027" },
+      { year: 2027, month: 5, name: "Mayo 2027" },
+      { year: 2027, month: 6, name: "Junio 2027" }
     ];
 
     const classes = [
@@ -341,7 +343,7 @@
       "6ºB"
     ];
 
-    // Horarios normales (nov–may)
+    // Horarios normales (septiembre–mayo)
     const defaultSlots = [
       "9:00-9:45",   // 1ª
       "9:45-10:30",  // 2ª
@@ -351,7 +353,7 @@
       "13:15-14:00"  // 6ª
     ];
 
-    // Horarios especiales para JUNIO 2026 (solo 5 sesiones)
+    // Horarios especiales para JUNIO 2027 (solo 5 sesiones)
     const juneSlots = [
       "9:00-9:40",
       "9:40-10:20",
@@ -362,7 +364,7 @@
 
     function getSlotsForMonth(monthIndex) {
       const { year, month } = months[monthIndex];
-      if (year === 2026 && month === 6) {
+      if (year === 2027 && month === 6) {
         // En junio solo hay 5 sesiones
         return juneSlots;
       }
@@ -370,7 +372,7 @@
     }
 
     /* === RESERVAS FIJAS CARRO DE TABLETS ===
-       De momento no hay reservas fijas.
+       Curso 2026–2027: todavía no hay ninguna franja asignada de forma fija.
     */
     const FIXED_WEEKLY_RESERVATIONS = [];
 
