@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -343,7 +343,7 @@
       "6ºB"
     ];
 
-    // Horarios normales (septiembre–mayo)
+    // Horarios normales (octubre–mayo)
     const defaultSlots = [
       "9:00-9:45",   // 1ª
       "9:45-10:30",  // 2ª
@@ -353,7 +353,7 @@
       "13:15-14:00"  // 6ª
     ];
 
-    // Horarios especiales para JUNIO 2027 (solo 5 sesiones)
+    // Horarios especiales para SEPTIEMBRE 2026 y JUNIO 2027 (solo 5 sesiones)
     const juneSlots = [
       "9:00-9:40",
       "9:40-10:20",
@@ -364,10 +364,13 @@
 
     function getSlotsForMonth(monthIndex) {
       const { year, month } = months[monthIndex];
-      if (year === 2027 && month === 6) {
-        // En junio solo hay 5 sesiones
+
+      // Septiembre 2026 y junio 2027 tienen horario reducido de 5 sesiones
+      if ((year === 2026 && month === 9) || (year === 2027 && month === 6)) {
         return juneSlots;
       }
+
+      // Octubre 2026 a mayo 2027 mantienen el horario habitual
       return defaultSlots;
     }
 
